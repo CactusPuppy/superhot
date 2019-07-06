@@ -1,0 +1,142 @@
+rule("When global var A, slow time")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(A) == True;
+	}
+
+	actions
+	{
+		Set Slow Motion(25);
+	}
+}
+
+rule("When not G: A, speed up again")
+{
+	event
+	{
+		Ongoing - Global;
+	}
+
+	conditions
+	{
+		Global Variable(A) == False;
+	}
+
+	actions
+	{
+		Set Slow Motion(100);
+	}
+}
+
+rule("When scoped in, set slow time true (G: A)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Secondary Fire) == True;
+		Hero Of(Event Player) == Hero(Widowmaker);
+		Global Variable(A) == False;
+	}
+
+	actions
+	{
+		Wait(0.100, Ignore Condition);
+		Set Global Variable(A, True);
+	}
+}
+
+rule("When unscoped, set slow time false (G: A)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Secondary Fire) != True;
+		Hero Of(Event Player) == Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Set Global Variable(A, False);
+	}
+}
+
+rule("If jump or stunned, set slow time false (G: A)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Or(Has Status(Event Player, Stunned), Is Button Held(Event Player, Jump)) == True;
+	}
+
+	actions
+	{
+		Skip If(Compare(Global Variable(A), !=, True), 1);
+		Set Global Variable(A, False);
+	}
+}
+
+rule("If killed, set slow time false (G: A)")
+{
+	event
+	{
+		Ongoing - Each Player;
+		Team 1;
+		All;
+	}
+
+	conditions
+	{
+		Is Dead(Event Player) == True;
+		Hero Of(Event Player) == Hero(Widowmaker);
+	}
+
+	actions
+	{
+		Skip If(Compare(Global Variable(A), !=, True), 1);
+		Set Global Variable(A, False);
+	}
+}
+
+rule("On interact, stun self")
+{
+	event
+	{
+		Ongoing - Each Player;
+		All;
+		All;
+	}
+
+	conditions
+	{
+		Is Button Held(Event Player, Interact) == True;
+	}
+
+	actions
+	{
+		Set Status(Event Player, Null, Stunned, 0.025);
+	}
+}
